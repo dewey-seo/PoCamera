@@ -19,7 +19,7 @@ typedef struct hsvColor {
 
 #define DIFF_COLOR_RANGE 80
 #define RED_RANGE 10
-#define RESIZE_SCALE 0.3f
+#define RESIZE_SCALE 0.4f
 
 @interface MainViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate>
 {
