@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="6250" systemVersion="14A389" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6244"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="MainViewController">
+            <connections>
+                <outlet property="cameraOutputView" destination="SXL-4p-YPo" id="rEG-XJ-q0h"/>
+                <outlet property="captureButton" destination="PWx-MX-asd" id="vGL-QZ-M0l"/>
+                <outlet property="hideSettingButton" destination="yVk-6j-Yvr" id="QhA-1D-iR0"/>
+                <outlet property="settingView" destination="5wp-qw-vLl" id="wVV-BW-DEU"/>
+                <outlet property="showSettingButton" destination="P3I-c8-dt7" id="NiZ-Jd-mKv"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="SXL-4p-YPo" userLabel="GLKView" customClass="GLKView">
+                    <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P3I-c8-dt7" userLabel="showSettingButton">
+                    <rect key="frame" x="600" y="20" width="46" height="30"/>
+                    <state key="normal" title="Button">
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="actShowSettingView:" destination="-1" eventType="touchUpInside" id="1Ts-yl-PnC"/>
+                    </connections>
+                </button>
+                <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PWx-MX-asd">
+                    <rect key="frame" x="600" y="173" width="50" height="50"/>
+                    <color key="backgroundColor" red="0.63137254899999995" green="0.63137254899999995" blue="0.63137254899999995" alpha="1" colorSpace="calibratedRGB"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    <state key="normal" title="Capture">
+                        <color key="titleColor" red="0.96862745100000003" green="0.047058823530000002" blue="0.047058823530000002" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                    </state>
+                    <connections>
+                        <action selector="actCapture:" destination="-1" eventType="touchUpInside" id="swF-5J-Jc1"/>
+                    </connections>
+                </button>
+                <view alpha="0.29999999999999999" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5wp-qw-vLl" userLabel="SettingView">
+                    <rect key="frame" x="414" y="0.0" width="253" height="375"/>
+                    <subviews>
+                        <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yVk-6j-Yvr" userLabel="hideSettingViewButton">
+                            <rect key="frame" x="186" y="20" width="46" height="30"/>
+                            <state key="normal" title="Button">
+                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="actHideSettingView:" destination="-1" eventType="touchUpInside" id="ebP-dQ-cRn"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                </view>
+            </subviews>
+            <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="5wp-qw-vLl" secondAttribute="bottom" id="0Vg-zh-4Hw"/>
+                <constraint firstItem="5wp-qw-vLl" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="8qb-gH-FN8"/>
+                <constraint firstAttribute="trailing" secondItem="SXL-4p-YPo" secondAttribute="trailing" id="Ane-zk-Cdi"/>
+                <constraint firstAttribute="bottom" secondItem="SXL-4p-YPo" secondAttribute="bottom" id="HO4-1x-y9W"/>
+                <constraint firstItem="SXL-4p-YPo" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="Lp7-oI-n6p"/>
+                <constraint firstAttribute="trailing" secondItem="5wp-qw-vLl" secondAttribute="trailing" id="aE5-p1-XI2"/>
+                <constraint firstItem="P3I-c8-dt7" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" constant="20" id="ddn-jc-W6G"/>
+                <constraint firstItem="SXL-4p-YPo" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="j68-JN-wHI"/>
+                <constraint firstAttribute="trailing" secondItem="P3I-c8-dt7" secondAttribute="trailing" constant="21" id="l6C-ZK-ren"/>
+            </constraints>
+            <nil key="simulatedStatusBarMetrics"/>
+            <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
+            <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina47"/>
+            <point key="canvasLocation" x="864.5" y="472.5"/>
+        </view>
+    </objects>
+</document>
