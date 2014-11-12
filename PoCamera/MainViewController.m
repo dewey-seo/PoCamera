@@ -49,7 +49,18 @@
 - (void)setSettingInfo {
     settingViewWidth = self.settingView.frame.size.width;
     [self actHideSettingView:nil];
+
+    [self makeCircleButton:self.redColorButton];
+    [self makeCircleButton:self.yellowColorButton];
+    [self makeCircleButton:self.blueColorButton];
+    [self makeCircleButton:self.greenColorButton];
     
+    [self makeCircleLabel:self.hValueLabel withValue:0.15f];
+    [self makeCircleLabel:self.sValueLabel withValue:0.15f];
+    [self makeCircleLabel:self.vValueLabel withValue:0.15f];
+    
+    self.hValueSlider.minimumValue = 0.0f;
+    self.hValueSlider.maximumValue = 360.0f;
     self.sValueSlider.minimumValue = 0.0f;
     self.sValueSlider.maximumValue = 1.0f;
     self.vValueSlider.minimumValue = 0.0f;
@@ -124,11 +135,25 @@
         self.showSettingButton.hidden = NO;
     } completion:nil];
 }
-
+- (IBAction)hValueSliderChanged:(id)sender {
+    [self applySliderInfo];
+}
 - (IBAction)sValueSliderChanged:(id)sender {
+    [self applySliderInfo];
 }
 - (IBAction)vValueSliderChanged:(id)sender {
-    
+    [self applySliderInfo];
+}
+- (IBAction)actColorChange:(id)sender {
+    if(sender == self.redColorButton) {
+        colorDegrees = 0.0f;
+    } else if(sender == self.yellowColorButton) {
+        colorDegrees = 60.0f;
+    } else if(sender == self.blueColorButton) {
+        colorDegrees = 240.0f;
+    } else if(sender == self.greenColorButton) {
+        colorDegrees = 120.0f;
+    }
 }
 
 - (IBAction)actCapture:(id)sender {
@@ -318,10 +343,10 @@
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
             hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
-            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > 0.4 && modiHSV.v > 0.4) || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > 0.4 && modiHSV.v > 0.4)) {
-                
+            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)
+                || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)) {
             } else {
-                int avrgColor = (int)((vR + vG + vB) * 0.333);
+                int avrgColor = (int)((vR + vG + vB) * 0.3333);
                 processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
             }
         }
@@ -382,9 +407,20 @@
     }];
 }
 
+- (void)makeCircleButton:(UIButton *)btn {
+    btn.layer.cornerRadius = btn.bounds.size.width * 0.5f;
+    btn.layer.masksToBounds = YES;
+}
+
+- (void)makeCircleLabel:(UILabel *)lbl withValue:(CGFloat)value {
+    lbl.layer.cornerRadius = lbl.bounds.size.width * value;
+    lbl.layer.masksToBounds = YES;
+}
+
 - (void)applySliderInfo {
-    self.sValueLabel.text = [NSString stringWithFormat:@"%2f", self.sValueSlider.value];
-    self.vValueLabel.text = [NSString stringWithFormat:@"%2f", self.vValueSlider.value];
+    self.hValueLabel.text = [NSString stringWithFormat:@"%.2f", self.sValueSlider.value];
+    self.sValueLabel.text = [NSString stringWithFormat:@"%.2f", self.sValueSlider.value];
+    self.vValueLabel.text = [NSString stringWithFormat:@"%.2f", self.vValueSlider.value];
 }
 
 - (hsvColor)RGBtoHSV:(int)r Green:(int)g Blue:(int)b {

@@ -42,6 +42,8 @@ typedef struct hsvColor {
     
     CGFloat settingViewWidth;
     BOOL isSettingViewHide;
+    
+    CGFloat colorDegrees;
 }
 @property (weak, nonatomic) IBOutlet GLKView *cameraOutputView;
 @property (weak, nonatomic) IBOutlet UIView *settingView;
@@ -49,11 +51,20 @@ typedef struct hsvColor {
 @property (weak, nonatomic) IBOutlet UIButton *showSettingButton;
 @property (weak, nonatomic) IBOutlet UIButton *captureButton;
 
+
+
 // settingView
 @property (weak, nonatomic) IBOutlet UIButton *hideSettingButton;
 
+@property (weak, nonatomic) IBOutlet UIButton *redColorButton;
+@property (weak, nonatomic) IBOutlet UIButton *yellowColorButton;
+@property (weak, nonatomic) IBOutlet UIButton *blueColorButton;
+@property (weak, nonatomic) IBOutlet UIButton *greenColorButton;
+
+@property (weak, nonatomic) IBOutlet UISlider *hValueSlider;
 @property (weak, nonatomic) IBOutlet UISlider *sValueSlider;
 @property (weak, nonatomic) IBOutlet UISlider *vValueSlider;
+@property (weak, nonatomic) IBOutlet UILabel *hValueLabel;
 @property (weak, nonatomic) IBOutlet UILabel *sValueLabel;
 @property (weak, nonatomic) IBOutlet UILabel *vValueLabel;
 
