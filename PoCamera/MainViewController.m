@@ -22,8 +22,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    settingViewWidth = self.settingView.frame.size.width;
-    [self actHideSettingView:nil];
+    [self setSettingInfo];
     
     glContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     if ( !glContext )
@@ -43,13 +42,34 @@
     
     assetsLibrary = [[ALAssetsLibrary alloc] init];
     
+    [self setFocusSetting];
     [self initCapture];
+}
+
+- (void)setSettingInfo {
+    settingViewWidth = self.settingView.frame.size.width;
+    [self actHideSettingView:nil];
+    
+    self.sValueSlider.minimumValue = 0.0f;
+    self.sValueSlider.maximumValue = 1.0f;
+    self.vValueSlider.minimumValue = 0.0f;
+    self.vValueSlider.maximumValue = 1.0f;
+    
+    self.sValueSlider.value = S_DEFAULT_VALUE;
+    self.vValueSlider.value = V_DEFAULT_VALUE;
+    [self applySliderInfo];
+}
+- (void)setFocusSetting {
+    UITapGestureRecognizer *tapGR = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapToFocus:)];
+    [tapGR setNumberOfTapsRequired:1];
+    [tapGR setNumberOfTouchesRequired:1];
+    [self.cameraOutputView addGestureRecognizer:tapGR];
 }
 
 - (void)initCapture {
     /*We setup the input*/
-    captureDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:[AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo] error:nil];
-    
+    captureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    captureDeviceInput = [AVCaptureDeviceInput deviceInputWithDevice:captureDevice error:nil];
     /*We setupt the output*/
     captureVideoOutput = [[AVCaptureVideoDataOutput alloc] init];
     /*While a frame is processes in -captureOutput:didOutputSampleBuffer:fromConnection: delegate methods no other frames are added in the queue.
@@ -104,8 +124,69 @@
         self.showSettingButton.hidden = NO;
     } completion:nil];
 }
-- (IBAction)actCapture:(id)sender {
+
+- (IBAction)sValueSliderChanged:(id)sender {
+}
+- (IBAction)vValueSliderChanged:(id)sender {
     
+}
+
+- (IBAction)actCapture:(id)sender {
+    NSLog(@"%s", __func__);
+    AVCaptureConnection *videoConnection = nil;
+    for (AVCaptureConnection *connection in captureStillImageOutput.connections){
+        for (AVCaptureInputPort *port in [connection inputPorts]){
+            if ([[port mediaType] isEqual:AVMediaTypeVideo]){
+                videoConnection = connection;
+                break;
+            }
+        }
+        if (videoConnection) {
+            break;
+        }
+    }
+    
+    NSLog(@"about to request a capture from: %@", captureStillImageOutput);
+    [captureStillImageOutput captureStillImageAsynchronouslyFromConnection:videoConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error){
+        CFDictionaryRef exifAttachments = CMGetAttachment(imageSampleBuffer, kCGImagePropertyExifDictionary, NULL);
+        if (exifAttachments){
+            NSLog(@"attachements: %@", exifAttachments);
+        } else {
+            NSLog(@"no attachments");
+        }
+        
+        // get row Image Data
+        NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
+        
+        UIImage *filteredImage = [self pointFilterForSave:imageData];
+        [self saveToCameraAlbum:filteredImage];
+    }];
+}
+
+-(void)tapToFocus:(UITapGestureRecognizer *)singleTap{
+    CGPoint touchPoint = [singleTap locationInView:self.cameraOutputView];
+    CGPoint focusPoint = [self calculateFocusPoint:touchPoint];
+    if(captureDevice) {
+        if([captureDevice isFocusPointOfInterestSupported] && [captureDevice isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+            if([captureDevice lockForConfiguration:nil]) {
+                [captureDevice setFocusPointOfInterest:focusPoint];
+                [captureDevice setFocusMode:AVCaptureFocusModeAutoFocus];
+                [captureDevice setExposurePointOfInterest:focusPoint];
+                [captureDevice setExposureMode:AVCaptureExposureModeAutoExpose];
+            }
+            [captureDevice unlockForConfiguration];
+        }
+    }
+    NSLog(@"touch : %@", NSStringFromCGPoint(touchPoint));
+    NSLog(@"foucus : %@", NSStringFromCGPoint(focusPoint));
+}
+
+- (CGPoint)calculateFocusPoint:(CGPoint)touchPoint {
+    
+    CGFloat focusX = touchPoint.x / modiImageSize.size.width;
+    CGFloat focusY = touchPoint.y / modiImageSize.size.height;
+    
+    return CGPointMake(focusX, focusY);
 }
 
 #pragma mark - AVCaptureSession delegate
@@ -182,10 +263,10 @@
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
             hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
-            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > 0.4 && modiHSV.v > 0.4) || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > 0.4 && modiHSV.v > 0.4)) {
-                
+            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)
+                || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)) {
             } else {
-                int avrgColor = (int)((vR + vG + vB) * 0.333);
+                int avrgColor = (int)((vR + vG + vB) * 0.3333);
                 processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
             }
         }
@@ -207,6 +288,104 @@
     return filteredImg;
 }
 
+- (UIImage *)pointFilterForSave:(NSData *)rowImage {
+    CGDataProviderRef imgDataProvider = CGDataProviderCreateWithCFData((__bridge CFDataRef)(rowImage));
+    CGImageRef imageRef = CGImageCreateWithJPEGDataProvider(imgDataProvider, NULL, true, kCGRenderingIntentDefault);
+    
+    // the pixels will be painted to this array
+    uint32_t *pixels = (uint32_t *) malloc(oriImageSize.size.width * oriImageSize.size.height * sizeof(uint32_t));
+    
+    // clear the pixels so any transparency is preserved
+    memset(pixels, 0, oriImageSize.size.width * oriImageSize.size.height * sizeof(uint32_t));
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    
+    // create a context with RGBA pixels
+    CGContextRef context = CGBitmapContextCreate(pixels, oriImageSize.size.width, oriImageSize.size.height, 8, oriImageSize.size.width * sizeof(uint32_t), colorSpace,
+                                                 kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedLast);
+    
+    // CIImage -> context
+    CGContextDrawImage(context, CGRectMake(0, 0, oriImageSize.size.width, oriImageSize.size.height), imageRef);
+    CGImageRelease(imageRef);
+    
+    // Image Processing //
+    int pRED = 3; int pGREEN = 2; int pBLUE = 1;
+    
+    for(int pY=0; pY<oriImageSize.size.height; pY++) {
+        for(int pX=0; pX<oriImageSize.size.width; pX++) {
+            uint8_t *processPoint = (uint8_t *) &pixels[(pY) * (int)oriImageSize.size.width + (pX)];
+            int vR = (int)processPoint[pRED];
+            int vG = (int)processPoint[pGREEN];
+            int vB = (int)processPoint[pBLUE];
+            hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
+            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > 0.4 && modiHSV.v > 0.4) || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > 0.4 && modiHSV.v > 0.4)) {
+                
+            } else {
+                int avrgColor = (int)((vR + vG + vB) * 0.333);
+                processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
+            }
+        }
+    }
+    //// .... image Processing End //
+    
+    // create a new CGImageRef from our context with the modified pixels
+    CGImageRef image = CGBitmapContextCreateImage(context);
+    UIImage *filteredImg = [UIImage imageWithCGImage:image];
+    
+    CGImageRelease(image);
+    
+    // we're done with the context, color space, and pixels
+    CGContextRelease(context);
+    CGColorSpaceRelease(colorSpace);
+    free(pixels);
+    
+    return filteredImg;
+}
+
+- (void)saveToCameraAlbum:(UIImage *)img
+{
+    __weak ALAssetsLibrary *alAssetLib = assetsLibrary;
+    
+    [alAssetLib addAssetsGroupAlbumWithName:@"PoCamera" resultBlock:^(ALAssetsGroup *group) {
+        ///checks if group previously created
+        if(group == nil){
+            //enumerate albums
+            [alAssetLib enumerateGroupsWithTypes:ALAssetsGroupAlbum usingBlock:^(ALAssetsGroup *g, BOOL *stop){
+                //if the album is equal to our album
+                if ([[g valueForProperty:ALAssetsGroupPropertyName] isEqualToString:@"PoCamera"]) {
+                    //save image
+                    [alAssetLib writeImageDataToSavedPhotosAlbum:UIImagePNGRepresentation(img) metadata:nil completionBlock:^(NSURL *assetURL, NSError *error) {
+                        //then get the image asseturl
+                        [alAssetLib assetForURL:assetURL resultBlock:^(ALAsset *asset) {
+                            //put it into our album
+                            [g addAsset:asset];
+                        } failureBlock:^(NSError *error) {
+                            NSLog(@"error 1");
+                        }];
+                    }];
+                }
+            }failureBlock:^(NSError *error){
+                NSLog(@"error 2");
+            }];
+        }else{
+            // save image directly to library
+            [alAssetLib writeImageDataToSavedPhotosAlbum:UIImagePNGRepresentation(img) metadata:nil completionBlock:^(NSURL *assetURL, NSError *error) {
+                [alAssetLib assetForURL:assetURL resultBlock:^(ALAsset *asset) {
+                    [group addAsset:asset];
+                } failureBlock:^(NSError *error) {
+                    NSLog(@"error 3");
+                }];
+            }];
+        }
+    } failureBlock:^(NSError *error) {
+        NSLog(@"error 4");
+    }];
+}
+
+- (void)applySliderInfo {
+    self.sValueLabel.text = [NSString stringWithFormat:@"%2f", self.sValueSlider.value];
+    self.vValueLabel.text = [NSString stringWithFormat:@"%2f", self.vValueSlider.value];
+}
 
 - (hsvColor)RGBtoHSV:(int)r Green:(int)g Blue:(int)b {
     hsvColor tHSV;
