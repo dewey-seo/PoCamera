@@ -21,6 +21,10 @@ typedef struct hsvColor {
 #define DIFF_COLOR_RANGE 80
 #define RED_RANGE 10
 #define RESIZE_SCALE 0.4f
+
+
+#define H_DEFAULT_VALUE 0.0f
+#define H_RANGE_DEFAULT_VALUE 10.0f
 #define S_DEFAULT_VALUE 0.4f
 #define V_DEFAULT_VALUE 0.4f
 
@@ -62,9 +66,12 @@ typedef struct hsvColor {
 @property (weak, nonatomic) IBOutlet UIButton *greenColorButton;
 
 @property (weak, nonatomic) IBOutlet UISlider *hValueSlider;
+@property (weak, nonatomic) IBOutlet UISlider *hValueRangeSlider;
 @property (weak, nonatomic) IBOutlet UISlider *sValueSlider;
 @property (weak, nonatomic) IBOutlet UISlider *vValueSlider;
+
 @property (weak, nonatomic) IBOutlet UILabel *hValueLabel;
+@property (weak, nonatomic) IBOutlet UILabel *hVlaueRangeLabel;
 @property (weak, nonatomic) IBOutlet UILabel *sValueLabel;
 @property (weak, nonatomic) IBOutlet UILabel *vValueLabel;
 

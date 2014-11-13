@@ -56,16 +56,21 @@
     [self makeCircleButton:self.greenColorButton];
     
     [self makeCircleLabel:self.hValueLabel withValue:0.15f];
+    [self makeCircleLabel:self.hVlaueRangeLabel withValue:0.15f];
     [self makeCircleLabel:self.sValueLabel withValue:0.15f];
     [self makeCircleLabel:self.vValueLabel withValue:0.15f];
     
     self.hValueSlider.minimumValue = 0.0f;
     self.hValueSlider.maximumValue = 360.0f;
+    self.hValueRangeSlider.minimumValue = 0.0f;
+    self.hValueRangeSlider.maximumValue = 30.0f;
     self.sValueSlider.minimumValue = 0.0f;
     self.sValueSlider.maximumValue = 1.0f;
     self.vValueSlider.minimumValue = 0.0f;
     self.vValueSlider.maximumValue = 1.0f;
     
+    self.hValueSlider.value = H_DEFAULT_VALUE;
+    self.hValueRangeSlider.value = H_RANGE_DEFAULT_VALUE;
     self.sValueSlider.value = S_DEFAULT_VALUE;
     self.vValueSlider.value = V_DEFAULT_VALUE;
     [self applySliderInfo];
@@ -106,8 +111,11 @@
     [captureSession addInput:captureDeviceInput];
     [captureSession addOutput:captureVideoOutput];
     
+    AVCaptureConnection *connection = captureVideoOutput.connections[0];
+    connection.videoMinFrameDuration = CMTimeMake(1, 10);
+    
     /*We use medium quality, ont the iPhone 4 this demo would be laging too much, the conversion in UIImage and CGImage demands too much ressources for a 720p resolution.*/
-    [captureSession setSessionPreset:AVCaptureSessionPreset1280x720];
+    [captureSession setSessionPreset:AVCaptureSessionPreset640x480];
     
     /*Setting Capture.*/
     [captureSession addOutput:captureStillImageOutput];
@@ -135,15 +143,8 @@
         self.showSettingButton.hidden = NO;
     } completion:nil];
 }
-- (IBAction)hValueSliderChanged:(id)sender {
-    [self applySliderInfo];
-}
-- (IBAction)sValueSliderChanged:(id)sender {
-    [self applySliderInfo];
-}
-- (IBAction)vValueSliderChanged:(id)sender {
-    [self applySliderInfo];
-}
+
+
 - (IBAction)actColorChange:(id)sender {
     if(sender == self.redColorButton) {
         colorDegrees = 0.0f;
@@ -154,6 +155,20 @@
     } else if(sender == self.greenColorButton) {
         colorDegrees = 120.0f;
     }
+    self.hValueSlider.value = colorDegrees;
+    [self applySliderInfo];
+}
+- (IBAction)sliderChanged:(id)sender {
+    if(sender == self.hValueRangeSlider) {
+        
+    } else if(sender == self.hValueRangeSlider) {
+        
+    } else if(sender == self.sValueSlider) {
+        
+    } else if(sender == self.vValueSlider) {
+        
+    }
+    [self applySliderInfo];
 }
 
 - (IBAction)actCapture:(id)sender {
@@ -288,9 +303,16 @@
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
             hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
-            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)
-                || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)) {
+            if (/* h value */ [self isIntheHValueRange:modiHSV.h]
+                && /* s value */ modiHSV.s > self.sValueSlider.value
+                && /* v value */ modiHSV.v > self.vValueSlider.value) {
+                ////////////////////////////
+                // display original Color //
+                ////////////////////////////
             } else {
+                ////////////////////////////
+                // display gray Color     //
+                ////////////////////////////
                 int avrgColor = (int)((vR + vG + vB) * 0.3333);
                 processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
             }
@@ -343,9 +365,16 @@
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
             hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
-            if ((modiHSV.h >=0 && modiHSV.h <= RED_RANGE && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)
-                || (modiHSV.h >=360 - RED_RANGE && modiHSV.h <= 360 && modiHSV.s > self.sValueSlider.value && modiHSV.v > self.vValueSlider.value)) {
+            if (/* h value */ [self isIntheHValueRange:modiHSV.h]
+                && /* s value */ modiHSV.s > self.sValueSlider.value
+                && /* v value */ modiHSV.v > self.vValueSlider.value) {
+                ////////////////////////////
+                // display original Color //
+                ////////////////////////////
             } else {
+                ////////////////////////////
+                // display gray Color     //
+                ////////////////////////////
                 int avrgColor = (int)((vR + vG + vB) * 0.3333);
                 processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
             }
@@ -365,6 +394,37 @@
     free(pixels);
     
     return filteredImg;
+}
+
+- (BOOL)isIntheHValueRange:(CGFloat)hValue {
+    if(self.hValueSlider.value + self.hValueRangeSlider.value > 360.0f || self.hValueSlider.value - self.hValueRangeSlider.value < 0) {
+        if ( (hValue >= 0 && hValue <= [self calMaxHValue]) || (hValue <= 360.0f && hValue >= [self calMinHValue])) {
+            return YES;
+        } else {
+            return NO;
+        }
+    } else {
+        if (hValue >=self.hValueSlider.value - self.hValueRangeSlider.value && hValue <= self.hValueSlider.value + self.hValueRangeSlider.value) {
+            return YES;
+        } else {
+            return NO;
+        }
+    }
+    return NO;
+}
+- (CGFloat)calMaxHValue {
+    CGFloat maxValue = self.hValueSlider.value + self.hValueRangeSlider.value;
+    if (maxValue > 360.0f) {
+        maxValue -= 360.0f;
+    }
+    return maxValue;
+}
+- (CGFloat)calMinHValue {
+    CGFloat minValue = self.hValueSlider.value - self.hValueRangeSlider.value;
+    if (minValue < 0.0f) {
+        minValue += 360.0f;
+    }
+    return minValue;
 }
 
 - (void)saveToCameraAlbum:(UIImage *)img
@@ -408,17 +468,18 @@
 }
 
 - (void)makeCircleButton:(UIButton *)btn {
-    btn.layer.cornerRadius = btn.bounds.size.width * 0.5f;
+    btn.layer.cornerRadius = btn.frame.size.width * 0.5f;
     btn.layer.masksToBounds = YES;
 }
 
 - (void)makeCircleLabel:(UILabel *)lbl withValue:(CGFloat)value {
-    lbl.layer.cornerRadius = lbl.bounds.size.width * value;
+    lbl.layer.cornerRadius = lbl.frame.size.width * value;
     lbl.layer.masksToBounds = YES;
 }
 
 - (void)applySliderInfo {
-    self.hValueLabel.text = [NSString stringWithFormat:@"%.2f", self.sValueSlider.value];
+    self.hValueLabel.text = [NSString stringWithFormat:@"%.2f", self.hValueSlider.value];
+    self.hVlaueRangeLabel.text = [NSString stringWithFormat:@"%.2f", self.hValueRangeSlider.value];
     self.sValueLabel.text = [NSString stringWithFormat:@"%.2f", self.sValueSlider.value];
     self.vValueLabel.text = [NSString stringWithFormat:@"%.2f", self.vValueSlider.value];
 }
