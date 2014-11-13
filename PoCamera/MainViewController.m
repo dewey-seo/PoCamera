@@ -329,7 +329,7 @@
             int vR = (int)processPoint[pRED];
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
-            hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
+            hsvColor modiHSV = [self RGBtoHSV2:vR Green:vG Blue:vB];
             if (/* h value */ [self isIntheHValueRange:modiHSV.h]
                 && /* s value */ modiHSV.s > self.sValueSlider.value
                 && /* v value */ modiHSV.v > self.vValueSlider.value) {
@@ -391,7 +391,7 @@
             int vR = (int)processPoint[pRED];
             int vG = (int)processPoint[pGREEN];
             int vB = (int)processPoint[pBLUE];
-            hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
+            hsvColor modiHSV = [self RGBtoHSV2:vR Green:vG Blue:vB];
             if (/* h value */ [self isIntheHValueRange:modiHSV.h]
                 && /* s value */ modiHSV.s > self.sValueSlider.value
                 && /* v value */ modiHSV.v > self.vValueSlider.value) {
@@ -548,6 +548,33 @@
     
     if( tHSV.h < 0.0 )
         tHSV.h += 360.0;
+    
+    return tHSV;
+}
+
+- (hsvColor)RGBtoHSV2:(int)r Green:(int)g Blue:(int)b {
+    hsvColor tHSV;
+    int rgb_min, rgb_max;
+    rgb_min = MIN3(r, g, b);
+    rgb_max = MAX3(r, g, b);
+    tHSV.v = rgb_max;
+    if (tHSV.v == 0) {
+        tHSV.h = tHSV.s = 0;
+        return tHSV;
+    }
+    tHSV.s = 255 * (rgb_max - rgb_min) / tHSV.v;
+    if (tHSV.s == 0) {
+        tHSV.h = 0;
+        return tHSV;
+    }
+    /* Compute hue */
+    if (rgb_max == r) {
+        tHSV.h = 0 + 43 * (g - b)/(rgb_max - rgb_min);
+    } else if (rgb_max == g) {
+        tHSV.h = 85 + 43 * (b - r)/(rgb_max - rgb_min);
+    } else /* rgb_max == rgb.b */ {
+        tHSV.h = 171 + 43*(r - g)/(rgb_max - rgb_min);
+    }
     
     return tHSV;
 }

@@ -18,15 +18,18 @@ typedef struct hsvColor {
     float v;
 }hsvColor;
 
+#define MIN3(x,y,z)  x <= (y <= z ? y : z) ? x : (y <= z ? y : z)
+#define MAX3(x,y,z)  x >= (y >= z ? y : z) ? x : (y >= z ? y : z)
+
 #define DIFF_COLOR_RANGE 80
-#define RED_RANGE 10
+#define RED_RANGE 20
 #define RESIZE_SCALE 0.4f
 
 
 #define H_DEFAULT_VALUE 0.0f
 #define H_RANGE_DEFAULT_VALUE 10.0f
-#define S_DEFAULT_VALUE 0.05f
-#define V_DEFAULT_VALUE 0.05f
+#define S_DEFAULT_VALUE 0.3f
+#define V_DEFAULT_VALUE 0.3f
 
 @interface MainViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate>
 {
