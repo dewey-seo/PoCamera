@@ -25,8 +25,8 @@ typedef struct hsvColor {
 
 #define H_DEFAULT_VALUE 0.0f
 #define H_RANGE_DEFAULT_VALUE 10.0f
-#define S_DEFAULT_VALUE 0.4f
-#define V_DEFAULT_VALUE 0.4f
+#define S_DEFAULT_VALUE 0.05f
+#define V_DEFAULT_VALUE 0.05f
 
 @interface MainViewController : UIViewController <AVCaptureMetadataOutputObjectsDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, UIGestureRecognizerDelegate>
 {
@@ -48,6 +48,9 @@ typedef struct hsvColor {
     BOOL isSettingViewHide;
     
     CGFloat colorDegrees;
+    NSInteger minH;
+    NSInteger maxH;
+    BOOL isRedRange;
 }
 @property (weak, nonatomic) IBOutlet GLKView *cameraOutputView;
 @property (weak, nonatomic) IBOutlet UIView *settingView;

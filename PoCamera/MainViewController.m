@@ -63,7 +63,7 @@
     self.hValueSlider.minimumValue = 0.0f;
     self.hValueSlider.maximumValue = 360.0f;
     self.hValueRangeSlider.minimumValue = 0.0f;
-    self.hValueRangeSlider.maximumValue = 30.0f;
+    self.hValueRangeSlider.maximumValue = 60.0f;
     self.sValueSlider.minimumValue = 0.0f;
     self.sValueSlider.maximumValue = 1.0f;
     self.vValueSlider.minimumValue = 0.0f;
@@ -110,12 +110,17 @@
     /*We add input and output*/
     [captureSession addInput:captureDeviceInput];
     [captureSession addOutput:captureVideoOutput];
-    
-    AVCaptureConnection *connection = captureVideoOutput.connections[0];
-    connection.videoMinFrameDuration = CMTimeMake(1, 10);
+
+//    NSError *error;
+//    [captureDevice lockForConfiguration:&error];
+//    if (error == nil) {
+//        [captureDevice setActiveVideoMaxFrameDuration:CMTimeMake(1, 12)];
+//        [captureDevice setActiveVideoMinFrameDuration:CMTimeMake(1, 10)];
+//    }
+//    [captureDevice unlockForConfiguration];
     
     /*We use medium quality, ont the iPhone 4 this demo would be laging too much, the conversion in UIImage and CGImage demands too much ressources for a 720p resolution.*/
-    [captureSession setSessionPreset:AVCaptureSessionPreset640x480];
+    [captureSession setSessionPreset:AVCaptureSessionPresetiFrame960x540];
     
     /*Setting Capture.*/
     [captureSession addOutput:captureStillImageOutput];
@@ -159,15 +164,15 @@
     [self applySliderInfo];
 }
 - (IBAction)sliderChanged:(id)sender {
-    if(sender == self.hValueRangeSlider) {
-        
-    } else if(sender == self.hValueRangeSlider) {
-        
-    } else if(sender == self.sValueSlider) {
-        
-    } else if(sender == self.vValueSlider) {
-        
-    }
+//    if(sender == self.hValueRangeSlider) {
+//        
+//    } else if(sender == self.hValueRangeSlider) {
+//        
+//    } else if(sender == self.sValueSlider) {
+//        
+//    } else if(sender == self.vValueSlider) {
+//        
+//    }
     [self applySliderInfo];
 }
 
@@ -296,6 +301,28 @@
     // Image Filtering //
     int pRED = 3; int pGREEN = 2; int pBLUE = 1;
     
+//    for(int i=0; i<displayImage.extent.size.width*displayImage.extent.size.height; i++) {
+//        uint8_t *processPoint = (uint8_t *) &pixels[i];
+//        int vR = (int)processPoint[pRED];
+//        int vG = (int)processPoint[pGREEN];
+//        int vB = (int)processPoint[pBLUE];
+//        
+//        hsvColor modiHSV = [self RGBtoHSV:vR Green:vG Blue:vB];
+//        if (/* h value */ [self isIntheHValueRange:modiHSV.h]
+//            && /* s value */ modiHSV.s > self.sValueSlider.value
+//            && /* v value */ modiHSV.v > self.vValueSlider.value) {
+//            ////////////////////////////
+//            // display original Color //
+//            ////////////////////////////
+//        } else {
+//            ////////////////////////////
+//            // display gray Color     //
+//            ////////////////////////////
+//            int avrgColor = (int)((vR + vG + vB) * 0.3333);
+//            processPoint[pRED] = processPoint[pGREEN] = processPoint[pBLUE] = avrgColor;
+//        }
+//    }
+    
     for(int pY=0; pY<displayImage.extent.size.height; pY++) {
         for(int pX=0; pX<displayImage.extent.size.width; pX++) {
             uint8_t *processPoint = (uint8_t *) &pixels[(pY) * (int)displayImage.extent.size.width + (pX)];
@@ -397,14 +424,14 @@
 }
 
 - (BOOL)isIntheHValueRange:(CGFloat)hValue {
-    if(self.hValueSlider.value + self.hValueRangeSlider.value > 360.0f || self.hValueSlider.value - self.hValueRangeSlider.value < 0) {
-        if ( (hValue >= 0 && hValue <= [self calMaxHValue]) || (hValue <= 360.0f && hValue >= [self calMinHValue])) {
+    if(isRedRange) {
+        if ( (hValue >= 0 && hValue <= maxH) || (hValue <= 360.0f && hValue >= minH)) {
             return YES;
         } else {
             return NO;
         }
     } else {
-        if (hValue >=self.hValueSlider.value - self.hValueRangeSlider.value && hValue <= self.hValueSlider.value + self.hValueRangeSlider.value) {
+        if (hValue >= minH && hValue <= maxH) {
             return YES;
         } else {
             return NO;
@@ -412,19 +439,21 @@
     }
     return NO;
 }
-- (CGFloat)calMaxHValue {
-    CGFloat maxValue = self.hValueSlider.value + self.hValueRangeSlider.value;
-    if (maxValue > 360.0f) {
-        maxValue -= 360.0f;
+
+- (void)calMinMaxValue {
+    minH = self.hValueSlider.value - self.hValueRangeSlider.value;
+    maxH = self.hValueSlider.value + self.hValueRangeSlider.value;
+    
+    isRedRange = NO;
+    if (minH < 0 || maxH > 360) {
+        if(minH < 0) {
+            minH += 360;
+        }
+        if(maxH > 360) {
+            maxH -= 360;
+        }
+        isRedRange = YES;
     }
-    return maxValue;
-}
-- (CGFloat)calMinHValue {
-    CGFloat minValue = self.hValueSlider.value - self.hValueRangeSlider.value;
-    if (minValue < 0.0f) {
-        minValue += 360.0f;
-    }
-    return minValue;
 }
 
 - (void)saveToCameraAlbum:(UIImage *)img
@@ -482,6 +511,8 @@
     self.hVlaueRangeLabel.text = [NSString stringWithFormat:@"%.2f", self.hValueRangeSlider.value];
     self.sValueLabel.text = [NSString stringWithFormat:@"%.2f", self.sValueSlider.value];
     self.vValueLabel.text = [NSString stringWithFormat:@"%.2f", self.vValueSlider.value];
+    
+    [self calMinMaxValue];
 }
 
 - (hsvColor)RGBtoHSV:(int)r Green:(int)g Blue:(int)b {
@@ -502,18 +533,18 @@
         // if max is 0, then r = g = b = 0
         // s = 0, v is undefined
         tHSV.s = 0.0;
-        tHSV.h = 180.0; // its now undefined
+        tHSV.h = 180.0;                            // its now undefined
         return tHSV;
     }
     if( r >= max )                           // > is bogus, just keeps compilor happy
         tHSV.h = ( g - b ) / delta;        // between yellow & magenta
     else
         if( g >= max )
-            tHSV.h = 2.0 + ( b - r ) / delta;  //between cyan & yellow
+            tHSV.h = 2.0 + ( b - r ) / delta;  // between cyan & yellow
         else
-            tHSV.h = 4.0 + ( r - g ) / delta;  //between magenta & cyan
+            tHSV.h = 4.0 + ( r - g ) / delta;  // between magenta & cyan
     
-    tHSV.h *= 60.0;  // degrees
+    tHSV.h *= 60.0;                              // degrees
     
     if( tHSV.h < 0.0 )
         tHSV.h += 360.0;
